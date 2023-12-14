@@ -59,13 +59,10 @@ e2e:
 	${TRUFFLE} exec test/0-init.js --network=ibc0 \
 	&& sleep 3 \
 	&& ${TRUFFLE} test test/0-init.test.js --network=ibc0 ${TEST_OPTS} \
-	&& ${TRUFFLE} exec test/1-send.js --network=ibc0 \
+	&& ${TRUFFLE} exec test/1-remote.js --network=ibc0 \
 	&& sleep 3 \
-	&& ${TRUFFLE} test test/1-send.test.js --network=ibc0 ${TEST_OPTS} \
-	&& sleep 3 \
-	&& ${TRUFFLE} test test/2-ibc1.test.js --network=ibc1 ${TEST_OPTS} \
-	&& ${TRUFFLE} test test/3-ibc0.test.js --network=ibc0 ${TEST_OPTS}
+	&& ${TRUFFLE} test test/1-remote.test.js --network=ibc0 ${TEST_OPTS} 
 
 .PHONY: sleep
 sleep:
-	sleep 5
+	sleep 10

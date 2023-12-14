@@ -3,10 +3,8 @@ syntax = "proto3";
 option go_package = "pkg/ibc/app";
 
 message MiniTokenPacketData {
-    // the token amount to be transferred
-    uint64 amount = 1;
-    // the sender address
-    bytes sender = 2;
-    // the recipient address on the destination chain
-    bytes receiver = 3;
+    // the requester address
+    bytes requester = 1;
+    // the disclose address on the destination chain
+    bytes disclose = 2;
 }

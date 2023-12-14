@@ -8,9 +8,8 @@ library MiniTokenPacketData {
 
   //struct definition
   struct Data {
-    uint64 amount;
-    bytes sender;
-    bytes receiver;
+    bytes requester;
+    bytes disclose;
   }
 
   // Decoder section
@@ -59,13 +58,10 @@ library MiniTokenPacketData {
       (fieldId, wireType, bytesRead) = ProtoBufRuntime._decode_key(pointer, bs);
       pointer += bytesRead;
       if (fieldId == 1) {
-        pointer += _read_amount(pointer, bs, r);
+        pointer += _read_requester(pointer, bs, r);
       } else
       if (fieldId == 2) {
-        pointer += _read_sender(pointer, bs, r);
-      } else
-      if (fieldId == 3) {
-        pointer += _read_receiver(pointer, bs, r);
+        pointer += _read_disclose(pointer, bs, r);
       } else
       {
         pointer += ProtoBufRuntime._skip_field_decode(wireType, pointer, bs);
@@ -84,13 +80,13 @@ library MiniTokenPacketData {
    * @param r The in-memory struct
    * @return The number of bytes decoded
    */
-  function _read_amount(
+  function _read_requester(
     uint256 p,
     bytes memory bs,
     Data memory r
   ) internal pure returns (uint) {
-    (uint64 x, uint256 sz) = ProtoBufRuntime._decode_uint64(p, bs);
-    r.amount = x;
+    (bytes memory x, uint256 sz) = ProtoBufRuntime._decode_bytes(p, bs);
+    r.requester = x;
     return sz;
   }
 
@@ -101,30 +97,13 @@ library MiniTokenPacketData {
    * @param r The in-memory struct
    * @return The number of bytes decoded
    */
-  function _read_sender(
+  function _read_disclose(
     uint256 p,
     bytes memory bs,
     Data memory r
   ) internal pure returns (uint) {
     (bytes memory x, uint256 sz) = ProtoBufRuntime._decode_bytes(p, bs);
-    r.sender = x;
-    return sz;
-  }
-
-  /**
-   * @dev The decoder for reading a field
-   * @param p The offset of bytes array to start decode
-   * @param bs The bytes array to be decoded
-   * @param r The in-memory struct
-   * @return The number of bytes decoded
-   */
-  function _read_receiver(
-    uint256 p,
-    bytes memory bs,
-    Data memory r
-  ) internal pure returns (uint) {
-    (bytes memory x, uint256 sz) = ProtoBufRuntime._decode_bytes(p, bs);
-    r.receiver = x;
+    r.disclose = x;
     return sz;
   }
 
@@ -161,32 +140,23 @@ library MiniTokenPacketData {
     uint256 offset = p;
     uint256 pointer = p;
     
-    if (r.amount != 0) {
+    if (r.requester.length != 0) {
     pointer += ProtoBufRuntime._encode_key(
       1,
-      ProtoBufRuntime.WireType.Varint,
+      ProtoBufRuntime.WireType.LengthDelim,
       pointer,
       bs
     );
-    pointer += ProtoBufRuntime._encode_uint64(r.amount, pointer, bs);
+    pointer += ProtoBufRuntime._encode_bytes(r.requester, pointer, bs);
     }
-    if (r.sender.length != 0) {
+    if (r.disclose.length != 0) {
     pointer += ProtoBufRuntime._encode_key(
       2,
       ProtoBufRuntime.WireType.LengthDelim,
       pointer,
       bs
     );
-    pointer += ProtoBufRuntime._encode_bytes(r.sender, pointer, bs);
-    }
-    if (r.receiver.length != 0) {
-    pointer += ProtoBufRuntime._encode_key(
-      3,
-      ProtoBufRuntime.WireType.LengthDelim,
-      pointer,
-      bs
-    );
-    pointer += ProtoBufRuntime._encode_bytes(r.receiver, pointer, bs);
+    pointer += ProtoBufRuntime._encode_bytes(r.disclose, pointer, bs);
     }
     return pointer - offset;
   }
@@ -231,9 +201,8 @@ library MiniTokenPacketData {
     Data memory r
   ) internal pure returns (uint) {
     uint256 e;
-    e += 1 + ProtoBufRuntime._sz_uint64(r.amount);
-    e += 1 + ProtoBufRuntime._sz_lendelim(r.sender.length);
-    e += 1 + ProtoBufRuntime._sz_lendelim(r.receiver.length);
+    e += 1 + ProtoBufRuntime._sz_lendelim(r.requester.length);
+    e += 1 + ProtoBufRuntime._sz_lendelim(r.disclose.length);
     return e;
   }
   // empty checker
@@ -242,15 +211,11 @@ library MiniTokenPacketData {
     Data memory r
   ) internal pure returns (bool) {
     
-  if (r.amount != 0) {
+  if (r.requester.length != 0) {
     return false;
   }
 
-  if (r.sender.length != 0) {
-    return false;
-  }
-
-  if (r.receiver.length != 0) {
+  if (r.disclose.length != 0) {
     return false;
   }
 
@@ -265,9 +230,8 @@ library MiniTokenPacketData {
    * @param output The in-storage struct
    */
   function store(Data memory input, Data storage output) internal {
-    output.amount = input.amount;
-    output.sender = input.sender;
-    output.receiver = input.receiver;
+    output.requester = input.requester;
+    output.disclose = input.disclose;
 
   }
 

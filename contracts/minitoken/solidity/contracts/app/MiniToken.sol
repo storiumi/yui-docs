@@ -25,14 +25,11 @@ contract MiniToken is IBCAppBase {
 
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
-    event SendTransfer(
-        address indexed from,
-        address indexed to,
-        string sourcePort,
-        string sourceChannel,
-        uint64 timeoutHeight,
-        uint256 amount
-    );
+    event AddAllowed(address indexed allowed, address indexed disclose);
+
+    event RemoteCall(address indexed requester, address indexed disclose);
+
+    event Acknowledgement(address indexed disclose, uint256 ack);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "MiniToken: caller is not the owner");
@@ -43,36 +40,36 @@ contract MiniToken is IBCAppBase {
         return address(ibcHandler);
     }
 
-    function sendTransfer(
-        uint64 amount,
-        address receiver,
+    function remoteContractCall(
+        address requester,
+        address remoteaddress,
         string calldata sourcePort,
         string calldata sourceChannel,
         uint64 timeoutHeight
     ) external {
-        require(_burn(msg.sender, amount), "MiniToken: failed to burn");
-
+        require(_allowed[requester][remoteaddress], "MiniToken: not allowed");
         _sendPacket(
             MiniTokenPacketData.Data({
-                amount: amount,
-                sender: abi.encodePacked(msg.sender),
-                receiver: abi.encodePacked(receiver)
+                requester: abi.encodePacked(requester),
+                disclose: abi.encodePacked(remoteaddress)
             }),
             sourcePort,
             sourceChannel,
             timeoutHeight
         );
-        emit SendTransfer(
-            msg.sender,
-            receiver,
-            sourcePort,
-            sourceChannel,
-            timeoutHeight,
-            amount
-        );
+        emit RemoteCall(requester, remoteaddress);
     }
 
     mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => bool)) private _allowed;
+
+    function addAllowed(address requester, address disclose, bool isAllowed) external {
+        require(_addAllowed(requester, disclose, isAllowed));
+    }
+
+    function checkAllowed(address requester, address disclose) external view returns (bool) {
+        return _allowed[requester][disclose];
+    }
 
     function mint(address account, uint256 amount) external onlyOwner {
         require(_mint(account, amount));
@@ -91,6 +88,14 @@ contract MiniToken is IBCAppBase {
 
     function balanceOf(address account) public view returns (uint256) {
         return _balances[account];
+    }
+
+    function _addAllowed(address requester, address disclose, bool isAllowed)
+        internal returns (bool)
+    {
+        _allowed[requester][disclose] = isAllowed;
+        emit AddAllowed(requester, disclose);
+        return true;
     }
 
     function _mint(address account, uint256 amount) internal returns (bool) {
@@ -136,7 +141,7 @@ contract MiniToken is IBCAppBase {
             packet.data
         );
         return
-            _newAcknowledgement(_mint(data.receiver.toAddress(0), data.amount));
+            _newAcknowledgement(abi.encodePacked(balanceOf(data.disclose.toAddress(0))));
     }
 
     function onAcknowledgementPacket(
@@ -144,9 +149,8 @@ contract MiniToken is IBCAppBase {
         bytes calldata acknowledgement,
         address /*relayer*/
     ) external virtual override onlyIBC {
-        if (!_isSuccessAcknowledgement(acknowledgement)) {
-            _refundTokens(MiniTokenPacketData.decode(packet.data));
-        }
+        uint256 decoded = abi.decode(acknowledgement, (uint256));
+        emit Acknowledgement(MiniTokenPacketData.decode(packet.data).disclose.toAddress(0), decoded);
     }
 
     function onChanOpenInit(
@@ -209,35 +213,12 @@ contract MiniToken is IBCAppBase {
         );
     }
 
-    function _newAcknowledgement(bool success)
+    function _newAcknowledgement(bytes memory ack)
         internal
         pure
         virtual
         returns (bytes memory)
     {
-        bytes memory acknowledgement = new bytes(1);
-        if (success) {
-            acknowledgement[0] = 0x01;
-        } else {
-            acknowledgement[0] = 0x00;
-        }
-        return acknowledgement;
-    }
-
-    function _isSuccessAcknowledgement(bytes memory acknowledgement)
-        internal
-        pure
-        virtual
-        returns (bool)
-    {
-        require(acknowledgement.length == 1);
-        return acknowledgement[0] == 0x01;
-    }
-
-    function _refundTokens(MiniTokenPacketData.Data memory data)
-        internal
-        virtual
-    {
-        require(_mint(data.sender.toAddress(0), data.amount));
+        return ack;
     }
 }

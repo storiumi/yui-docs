@@ -5,20 +5,18 @@ module.exports = async (callback) => {
   const alice = accounts[1];
   const bob = accounts[2];
 
-  const sendAmount = 50;
   const port = "transfer";
   const channel = "channel-0";
   const timeoutHeight = 10000000;
 
   const miniToken = await MiniToken.deployed();
-  const result = await miniToken.sendTransfer(sendAmount, bob, port, channel, timeoutHeight, {
-    from: alice,
-  });
+  const result = await miniToken.remoteContractCall(alice, bob, port, channel, timeoutHeight);
+
   console.log(result)
-  const sendTransfer = await miniToken.getPastEvents("SendTransfer", {
+  const remoteCall = await miniToken.getPastEvents("RemoteCall", {
     fromBlock: 0,
   });
-  console.log(sendTransfer);
+  console.log(remoteCall);
 
   callback();
 };

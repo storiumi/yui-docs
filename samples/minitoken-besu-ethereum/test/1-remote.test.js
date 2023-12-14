@@ -1,20 +1,20 @@
 const MiniToken = artifacts.require("MiniToken");
 
 contract("MiniToken", (accounts) => {
-  it("should sendTransfer 50 MiniCoin", async () => {
+  it("should RemoteCall", async () => {
     const block = await web3.eth.getBlockNumber();
     MiniToken.deployed()
       .then((instance) =>
-        instance.getPastEvents("SendTransfer", {
-          filter: { from: accounts[1], to: accounts[2] },
+        instance.getPastEvents("Acknowledement", {
+          filter: { disclose: accounts[2]},
           fromBlock: block,
         })
       )
       .then((evt) => {
         assert.equal(
-          evt[0].args.amount.valueOf(),
-          50,
-          "50 wasn't in Alice account"
+          evt[0].args.ack.valueOf(),
+          0,
+          "0 wasn't in Alice account"
         );
       });
   });
