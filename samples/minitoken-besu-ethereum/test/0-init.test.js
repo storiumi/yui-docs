@@ -5,7 +5,7 @@ contract("MiniToken", (accounts) => {
     MiniToken.deployed()
       .then((instance) => instance.balanceOf(accounts[1]))
       .then((balance) => {
-        assert.equal(balance.valueOf(), 600, "100 wasn't in Alice account");
+        assert.equal(balance.valueOf(), 100, "100 wasn't in Alice account");
       }));
   it("should added bob to allowed list", () =>
     MiniToken.deployed()

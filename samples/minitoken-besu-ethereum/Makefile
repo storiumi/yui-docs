@@ -65,4 +65,4 @@ e2e:
 
 .PHONY: sleep
 sleep:
-	sleep 10
+	sleep 30

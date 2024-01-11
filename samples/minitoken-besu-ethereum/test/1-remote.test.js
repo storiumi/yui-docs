@@ -5,7 +5,7 @@ contract("MiniToken", (accounts) => {
     const block = await web3.eth.getBlockNumber();
     MiniToken.deployed()
       .then((instance) =>
-        instance.getPastEvents("Acknowledement", {
+        instance.getPastEvents("Acknowledgement", {
           filter: { disclose: accounts[2]},
           fromBlock: block,
         })
