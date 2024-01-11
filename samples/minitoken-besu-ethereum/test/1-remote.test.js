@@ -13,8 +13,8 @@ contract("MiniToken", (accounts) => {
       .then((evt) => {
         assert.equal(
           evt[0].args.ack.valueOf(),
-          0,
-          "0 wasn't in Alice account"
+          1,
+          "Acknowledgement should success"
         );
       });
   });

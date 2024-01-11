@@ -29,7 +29,7 @@ contract MiniToken is IBCAppBase {
 
     event RemoteCall(address indexed requester, address indexed disclose);
 
-    event Acknowledgement(address indexed disclose, uint256 ack);
+    event Acknowledgement(address indexed disclose, int8 ack);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "MiniToken: caller is not the owner");
@@ -141,7 +141,7 @@ contract MiniToken is IBCAppBase {
             packet.data
         );
         return
-            _newAcknowledgement(abi.encodePacked(balanceOf(data.disclose.toAddress(0))));
+            _newAcknowledgement(true);
     }
 
     function onAcknowledgementPacket(
@@ -149,8 +149,7 @@ contract MiniToken is IBCAppBase {
         bytes calldata acknowledgement,
         address /*relayer*/
     ) external virtual override onlyIBC {
-        uint256 decoded = abi.decode(acknowledgement, (uint256));
-        emit Acknowledgement(MiniTokenPacketData.decode(packet.data).disclose.toAddress(0), decoded);
+        emit Acknowledgement(MiniTokenPacketData.decode(packet.data).disclose.toAddress(0), 1);
     }
 
     function onChanOpenInit(
@@ -213,12 +212,18 @@ contract MiniToken is IBCAppBase {
         );
     }
 
-    function _newAcknowledgement(bytes memory ack)
+    function _newAcknowledgement(bool success)
         internal
         pure
         virtual
         returns (bytes memory)
     {
-        return ack;
+        bytes memory acknowledgement = new bytes(1);
+        if (success) {
+            acknowledgement[0] = 0x01;
+        } else {
+            acknowledgement[0] = 0x00;
+        }
+        return acknowledgement;
     }
 }
