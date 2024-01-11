@@ -1,7 +1,7 @@
 const MiniToken = artifacts.require("MiniToken");
 
 contract("MiniToken", (accounts) => {
-  it("should RemoteCall", async () => {
+  it("should Acknowledgement", async () => {
     const block = await web3.eth.getBlockNumber();
     MiniToken.deployed()
       .then((instance) =>
